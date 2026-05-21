@@ -3,67 +3,56 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-accent: #8b5cf6;
-  --color-accent-light: #a78bfa;
-  --color-accent-dark: #7c3aed;
-  --color-surface: #fafafa;
-  --color-surface-dark: #0a0a0a;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #e4e4e7 transparent;
+  scrollbar-color: #d4d4d8 transparent;
 }
 
 .dark * {
-  scrollbar-color: #3f3f46 transparent;
+  scrollbar-color: #52525b transparent;
 }
 
 body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-@keyframes fadeIn {
+/* Apple-style card reveal */
+@keyframes cardAppear {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(12px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.card-enter {
+  animation: cardAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+/* Stagger children */
+.stagger-1 { animation-delay: 0.02s; }
+.stagger-2 { animation-delay: 0.06s; }
+.stagger-3 { animation-delay: 0.10s; }
+.stagger-4 { animation-delay: 0.14s; }
+.stagger-5 { animation-delay: 0.18s; }
+.stagger-6 { animation-delay: 0.22s; }
+.stagger-7 { animation-delay: 0.26s; }
+.stagger-8 { animation-delay: 0.30s; }
+
+/* Subtle placeholder shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.animate-slide-in {
-  animation: slideIn 0.25s ease-out;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.2s ease-out;
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 2px;
+  border-radius: 4px;
 }

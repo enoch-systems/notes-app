@@ -19,6 +19,7 @@ export default function Home() {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [view, setView] = useState<View>("list");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const loadNotes = useCallback(() => {
     setNotes(getNotes());
@@ -33,16 +34,19 @@ export default function Home() {
   function handleSelectNote(id: string) {
     setSelectedNoteId(id);
     setView("editor");
+    setSidebarOpen(false);
   }
 
   function handleAddNote() {
     setView("new");
+    setSidebarOpen(false);
   }
 
   function handleCreateNote(title: string, content: string) {
     addNote(title, content);
     loadNotes();
     setView("list");
+    setSidebarOpen(true);
   }
 
   function handleSaveNote(id: string, title: string, content: string) {
@@ -56,12 +60,14 @@ export default function Home() {
     if (selectedNoteId === id) {
       setSelectedNoteId(null);
       setView("list");
+      setSidebarOpen(true);
     }
   }
 
   function handleBack() {
     setSelectedNoteId(null);
     setView("list");
+    setSidebarOpen(true);
   }
 
   const selectedNote = selectedNoteId
@@ -70,43 +76,56 @@ export default function Home() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
-      <header className="border-b border-zinc-200/70 bg-white/80 px-5 py-3 backdrop-blur-xl dark:border-zinc-800/70 dark:bg-zinc-950/80">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-sm">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v16.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h6.9c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V3.6c0-.4-.2-.8-.5-1.1-.3-.3-.7-.5-1.1-.5z" />
-                <path d="M9 7h6" />
-                <path d="M9 11h6" />
-                <path d="M9 15h4" />
-              </svg>
-            </div>
-            <h1 className="text-lg font-bold tracking-tight text-zinc-800 dark:text-zinc-100">
-              Notes
-            </h1>
-            <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-              {notes.length}
-            </span>
+      {/* macOS-style unified titlebar */}
+      <header className="flex items-center justify-between border-b border-gray-200/60 bg-gray-100/80 px-4 py-2.5 backdrop-blur-xl dark:border-gray-800 dark:bg-gray-950/80">
+        <div className="flex items-center gap-3">
+          {/* Traffic light dots (macOS style) */}
+          <div className="mr-2 flex items-center gap-1.5">
+            <div className="h-3 w-3 rounded-full bg-red-500" />
+            <div className="h-3 w-3 rounded-full bg-amber-400" />
+            <div className="h-3 w-3 rounded-full bg-green-500" />
+          </div>
+          <h1 className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+            Notes
+          </h1>
+          <span className="text-xs text-gray-400 dark:text-gray-600">
+            {notes.length} note{notes.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Search */}
+          <div className="relative">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search"
+              className="w-44 rounded-lg border border-gray-200/80 bg-white/80 py-1.5 pl-8 pr-3 text-[13px] outline-none transition-all placeholder:text-gray-400 focus:w-56 focus:border-blue-400 dark:border-gray-700/80 dark:bg-gray-900/80 dark:placeholder:text-gray-500 dark:focus:border-blue-500"
+            />
           </div>
           <button
             onClick={handleAddNote}
-            className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:from-violet-500 hover:to-fuchsia-500 hover:shadow-md active:scale-[0.97]"
+            className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-[13px] font-medium text-white shadow-sm transition-all hover:bg-blue-500 active:scale-[0.97]"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -122,57 +141,100 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Search */}
-      {view !== "editor" && (
-        <div className="border-b border-zinc-200/50 bg-zinc-50/50 px-5 py-3 dark:border-zinc-800/50 dark:bg-zinc-900/30">
-          <div className="mx-auto max-w-6xl">
-            <div className="relative">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search notes..."
-                className="w-full rounded-xl border border-zinc-200/80 bg-white py-2.5 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-zinc-400 focus:border-violet-300 focus:ring-2 focus:ring-violet-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:placeholder:text-zinc-500 dark:focus:border-violet-600 dark:focus:ring-violet-500/20"
-              />
+      {/* Body: Sidebar + Content (split pane like Apple Notes) */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar - note list */}
+        <aside
+          className={`${
+            view === "list" || sidebarOpen ? "w-full sm:w-80" : "hidden sm:flex sm:w-80"
+          } flex-shrink-0 flex-col border-r border-gray-200/60 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-950/30`}
+        >
+          {view !== "editor" && (
+            <div className="flex-1 overflow-y-auto">
+              {displayedNotes.length === 0 ? (
+                <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-gray-400"
+                    >
+                      <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v16.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h6.9c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V3.6c0-.4-.2-.8-.5-1.1-.3-.3-.7-.5-1.1-.5z" />
+                      <path d="M9 7h6" />
+                      <path d="M9 11h6" />
+                      <path d="M9 15h4" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {searchQuery
+                      ? "No results"
+                      : "No notes yet"}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                    {searchQuery
+                      ? "Try a different search"
+                      : "Click New Note to get started"}
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100 dark:divide-gray-800/60">
+                  {displayedNotes.map((note, i) => (
+                    <div
+                      key={note.id}
+                      className={`stagger-${(i % 8) + 1} ${selectedNoteId === note.id ? "bg-blue-50/80 dark:bg-blue-950/30" : ""}`}
+                    >
+                      <NoteCard
+                        note={note}
+                        onSelect={handleSelectNote}
+                        onDelete={handleDeleteNote}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-      )}
+          )}
+          {view === "editor" && (
+            <div className="hidden sm:flex sm:flex-1 sm:flex-col sm:overflow-y-auto">
+              <div className="divide-y divide-gray-100 dark:divide-gray-800/60">
+                {displayedNotes.map((note) => (
+                  <NoteCard
+                    key={note.id}
+                    note={note}
+                    onSelect={handleSelectNote}
+                    onDelete={handleDeleteNote}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </aside>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto bg-zinc-50/50 dark:bg-zinc-950/30">
-        {view === "new" && (
-          <NewNoteForm onSave={handleCreateNote} onCancel={handleBack} />
-        )}
+        {/* Main content area */}
+        <main className="flex-1 overflow-hidden">
+          {view === "new" && (
+            <NewNoteForm onSave={handleCreateNote} onCancel={handleBack} />
+          )}
 
-        {view === "editor" && selectedNote && (
-          <NoteEditor
-            note={selectedNote}
-            onSave={handleSaveNote}
-            onBack={handleBack}
-          />
-        )}
+          {view === "editor" && selectedNote && (
+            <NoteEditor
+              note={selectedNote}
+              onSave={handleSaveNote}
+              onBack={handleBack}
+            />
+          )}
 
-        {view === "list" && (
-          <div className="mx-auto max-w-6xl p-5">
-            {displayedNotes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-950/40 dark:to-fuchsia-950/40">
+          {view === "list" && displayedNotes.length === 0 && (
+            <div className="hidden h-full items-center justify-center sm:flex">
+              <div className="text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="28"
@@ -183,7 +245,7 @@ export default function Home() {
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="text-violet-500 dark:text-violet-400"
+                    className="text-gray-400"
                   >
                     <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v16.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h6.9c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V3.6c0-.4-.2-.8-.5-1.1-.3-.3-.7-.5-1.1-.5z" />
                     <path d="M9 7h6" />
@@ -191,25 +253,21 @@ export default function Home() {
                     <path d="M9 15h4" />
                   </svg>
                 </div>
-                <p className="text-lg font-semibold text-zinc-500 dark:text-zinc-400">
-                  {searchQuery
-                    ? "No notes match your search"
-                    : "No notes yet"}
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  {searchQuery ? "No results found" : "No notes yet"}
                 </p>
-                <p className="mt-1.5 text-sm text-zinc-400 dark:text-zinc-500">
-                  {searchQuery
-                    ? "Try a different search term"
-                    : "Click the New Note button to create your first note"}
+                <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                  {searchQuery ? "Try adjusting your search" : "Create a note to get started"}
                 </p>
                 {!searchQuery && (
                   <button
                     onClick={handleAddNote}
-                    className="mt-6 flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-violet-500 hover:to-fuchsia-500 hover:shadow-md active:scale-[0.97]"
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-medium text-white shadow-sm transition-all hover:bg-blue-500 active:scale-[0.97]"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
+                      width="14"
+                      height="14"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -220,24 +278,45 @@ export default function Home() {
                       <path d="M12 5v14" />
                       <path d="M5 12h14" />
                     </svg>
-                    Create your first note
+                    New Note
                   </button>
                 )}
               </div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {displayedNotes.map((note) => (
-                  <NoteCard
-                    key={note.id}
-                    note={note}
-                    onSelect={handleSelectNote}
-                    onDelete={handleDeleteNote}
-                  />
-                ))}
+            </div>
+          )}
+
+          {view === "list" && displayedNotes.length > 0 && (
+            <div className="hidden h-full items-center justify-center sm:flex">
+              <div className="text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-gray-400"
+                  >
+                    <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v16.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h6.9c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V3.6c0-.4-.2-.8-.5-1.1-.3-.3-.7-.5-1.1-.5z" />
+                    <path d="M9 7h6" />
+                    <path d="M9 11h6" />
+                    <path d="M9 15h4" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Select a note
+                </p>
+                <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+                  Choose from the sidebar or create a new one
+                </p>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );
@@ -255,7 +334,7 @@ function NewNoteForm({
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setTimeout(() => titleRef.current?.focus(), 100);
+    setTimeout(() => titleRef.current?.focus(), 150);
   }, []);
 
   function handleSave() {
@@ -273,11 +352,12 @@ function NewNoteForm({
   }
 
   return (
-    <div className="flex h-full flex-col" onKeyDown={handleKeyDown}>
-      <div className="flex items-center justify-between border-b border-zinc-200/70 bg-white/80 px-5 py-3 backdrop-blur-xl dark:border-zinc-800/70 dark:bg-zinc-950/80">
+    <div className="flex h-full flex-col bg-white dark:bg-gray-950" onKeyDown={handleKeyDown}>
+      {/* Toolbar */}
+      <div className="flex items-center justify-between border-b border-gray-200/70 bg-gray-50/90 px-4 py-2 backdrop-blur-xl dark:border-gray-800 dark:bg-gray-900/90">
         <button
           onClick={onCancel}
-          className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-all hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+          className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200/70 dark:text-gray-400 dark:hover:bg-gray-800"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -293,20 +373,20 @@ function NewNoteForm({
             <path d="M19 12H5" />
             <path d="M12 19l-7-7 7-7" />
           </svg>
-          Cancel
+          <span className="hidden sm:inline">Notes</span>
         </button>
         <div className="flex items-center gap-2">
-          <span className="hidden text-xs text-zinc-400 sm:inline dark:text-zinc-500">
-            ⌘S to save · Esc to cancel
+          <span className="text-xs text-gray-400 dark:text-gray-500">
+            ⌘S save · Esc cancel
           </span>
           <button
             onClick={handleSave}
-            className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:from-violet-500 hover:to-fuchsia-500 hover:shadow-md active:scale-[0.97]"
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-500 active:scale-[0.97]"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="15"
-              height="15"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -320,23 +400,26 @@ function NewNoteForm({
           </button>
         </div>
       </div>
+
+      {/* Editor */}
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-8 py-8">
+        <div className="mx-auto max-w-2xl px-6 py-10 sm:px-8">
           <input
             ref={titleRef}
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Note title"
-            className="w-full text-3xl font-bold tracking-tight text-zinc-800 placeholder-zinc-300 outline-none transition-colors focus:text-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-700 dark:focus:text-zinc-50"
+            placeholder="Title"
+            className="w-full text-[28px] font-bold leading-tight tracking-tight text-gray-900 placeholder-gray-300 outline-none dark:text-gray-100 dark:placeholder-gray-700"
           />
-          <hr className="my-6 border-zinc-100 dark:border-zinc-800/60" />
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Start writing your thoughts..."
-            className="min-h-[400px] w-full resize-none text-base leading-relaxed text-zinc-700 placeholder-zinc-300 outline-none transition-colors focus:text-zinc-800 dark:text-zinc-300 dark:placeholder-zinc-600 dark:focus:text-zinc-200"
-          />
+          <div className="mt-8">
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Start writing..."
+              className="min-h-[60vh] w-full resize-none text-base leading-relaxed text-gray-800 placeholder-gray-300 outline-none dark:text-gray-200 dark:placeholder-gray-600"
+            />
+          </div>
         </div>
       </div>
     </div>

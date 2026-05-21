@@ -19,7 +19,7 @@ export default function NoteEditor({ note, onSave, onBack }: NoteEditorProps) {
   useEffect(() => {
     setTitle(note.title);
     setContent(note.content);
-    setTimeout(() => titleRef.current?.focus(), 100);
+    setTimeout(() => titleRef.current?.focus(), 150);
   }, [note.id]);
 
   function handleSave() {
@@ -39,23 +39,21 @@ export default function NoteEditor({ note, onSave, onBack }: NoteEditorProps) {
     }
   }
 
-  const formattedDate = new Date(note.updatedAt).toLocaleDateString("en-US", {
+  const dateLabel = new Date(note.updatedAt).toLocaleDateString("en-US", {
     weekday: "short",
     month: "long",
     day: "numeric",
     year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
   });
 
   return (
-    <div className="flex h-full flex-col" onKeyDown={handleKeyDown}>
-      {/* Editor header */}
-      <div className="flex items-center justify-between border-b border-zinc-200/70 bg-white/80 px-5 py-3 backdrop-blur-xl dark:border-zinc-800/70 dark:bg-zinc-950/80">
-        <div className="flex items-center gap-3">
+    <div className="flex h-full flex-col bg-white dark:bg-gray-950" onKeyDown={handleKeyDown}>
+      {/* Toolbar */}
+      <div className="flex items-center justify-between border-b border-gray-200/70 bg-gray-50/90 px-4 py-2 backdrop-blur-xl dark:border-gray-800 dark:bg-gray-900/90">
+        <div className="flex items-center gap-2">
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-all hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+            className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200/70 dark:text-gray-400 dark:hover:bg-gray-800"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -71,16 +69,13 @@ export default function NoteEditor({ note, onSave, onBack }: NoteEditorProps) {
               <path d="M19 12H5" />
               <path d="M12 19l-7-7 7-7" />
             </svg>
-            Back
+            <span className="hidden sm:inline">Notes</span>
           </button>
-          <span className="h-5 w-px bg-zinc-200 dark:bg-zinc-800" />
-          <span className="text-xs text-zinc-400 dark:text-zinc-500">
-            {formattedDate}
-          </span>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-3">
           {saved && (
-            <span className="animate-fade-in flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            <span className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -99,12 +94,12 @@ export default function NoteEditor({ note, onSave, onBack }: NoteEditorProps) {
           )}
           <button
             onClick={handleSave}
-            className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:from-violet-500 hover:to-fuchsia-500 hover:shadow-md active:scale-[0.97]"
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-500 active:scale-[0.97]"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="15"
-              height="15"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -121,24 +116,28 @@ export default function NoteEditor({ note, onSave, onBack }: NoteEditorProps) {
         </div>
       </div>
 
-      {/* Editor content */}
+      {/* Editor */}
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-8 py-8">
+        <div className="mx-auto max-w-2xl px-6 py-10 sm:px-8">
           <input
             ref={titleRef}
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Untitled"
-            className="w-full text-3xl font-bold tracking-tight text-zinc-800 placeholder-zinc-300 outline-none transition-colors focus:text-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-700 dark:focus:text-zinc-50"
+            placeholder="Title"
+            className="w-full text-[28px] font-bold leading-tight tracking-tight text-gray-900 placeholder-gray-300 outline-none dark:text-gray-100 dark:placeholder-gray-700"
           />
-          <hr className="my-6 border-zinc-100 dark:border-zinc-800/60" />
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Start writing your thoughts..."
-            className="min-h-[400px] w-full resize-none text-base leading-relaxed text-zinc-700 placeholder-zinc-300 outline-none transition-colors focus:text-zinc-800 dark:text-zinc-300 dark:placeholder-zinc-600 dark:focus:text-zinc-200"
-          />
+          <p className="mt-1 text-sm text-gray-400 dark:text-gray-600">
+            {dateLabel}
+          </p>
+          <div className="mt-8">
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Start writing..."
+              className="min-h-[60vh] w-full resize-none text-base leading-relaxed text-gray-800 placeholder-gray-300 outline-none dark:text-gray-200 dark:placeholder-gray-600"
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -77,22 +77,26 @@ export default function Home() {
   return (
     <div className="flex h-full flex-col">
       {/* macOS-style unified titlebar */}
-      <header className="flex items-center justify-between border-b border-gray-200/60 bg-gray-100/80 px-4 py-2.5 backdrop-blur-xl dark:border-gray-800 dark:bg-gray-950/80">
-        <div className="flex items-center gap-3">
-          {/* Traffic light dots (macOS style) */}
-          <div className="mr-2 flex items-center gap-1.5">
+      <header className="flex items-center justify-between gap-2 border-b border-gray-200/60 bg-gray-100/80 px-3 py-2 backdrop-blur-xl dark:border-gray-800 dark:bg-gray-950/80 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2">
+          {/* Traffic light dots (macOS style) - hidden on mobile */}
+          <div className="hidden sm:flex sm:mr-2 sm:items-center sm:gap-1.5">
             <div className="h-3 w-3 rounded-full bg-red-500" />
             <div className="h-3 w-3 rounded-full bg-amber-400" />
             <div className="h-3 w-3 rounded-full bg-green-500" />
           </div>
-          <h1 className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+          <h1 className="shrink-0 text-sm font-semibold text-gray-600 dark:text-gray-400">
             Notes
           </h1>
-          <span className="text-xs text-gray-400 dark:text-gray-600">
+          <span className="hidden shrink-0 text-xs text-gray-400 sm:inline dark:text-gray-600">
             {notes.length} note{notes.length !== 1 ? "s" : ""}
           </span>
+          {/* Mobile note count as badge */}
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-200/70 text-[10px] font-semibold text-gray-500 sm:hidden dark:bg-gray-800 dark:text-gray-400">
+            {notes.length}
+          </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {/* Search */}
           <div className="relative">
             <svg
@@ -105,7 +109,7 @@ export default function Home() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
             >
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.3-4.3" />
@@ -115,12 +119,12 @@ export default function Home() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search"
-              className="w-44 rounded-lg border border-gray-200/80 bg-white/80 py-1.5 pl-8 pr-3 text-[13px] outline-none transition-all placeholder:text-gray-400 focus:w-56 focus:border-blue-400 dark:border-gray-700/80 dark:bg-gray-900/80 dark:placeholder:text-gray-500 dark:focus:border-blue-500"
+              className="w-28 rounded-lg border border-gray-200/80 bg-white/80 py-1.5 pl-7 pr-2 text-[13px] outline-none transition-all placeholder:text-gray-400 focus:w-36 focus:border-blue-400 sm:w-36 sm:pl-8 sm:pr-3 sm:focus:w-52 dark:border-gray-700/80 dark:bg-gray-900/80 dark:placeholder:text-gray-500 dark:focus:border-blue-500"
             />
           </div>
           <button
             onClick={handleAddNote}
-            className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-[13px] font-medium text-white shadow-sm transition-all hover:bg-blue-500 active:scale-[0.97]"
+            className="flex items-center gap-1 rounded-lg bg-blue-600 px-2 py-1.5 text-[13px] font-medium text-white shadow-sm transition-all hover:bg-blue-500 active:scale-[0.97] sm:px-3"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -136,7 +140,7 @@ export default function Home() {
               <path d="M12 5v14" />
               <path d="M5 12h14" />
             </svg>
-            New Note
+            <span className="hidden sm:inline">New Note</span>
           </button>
         </div>
       </header>
@@ -354,10 +358,10 @@ function NewNoteForm({
   return (
     <div className="flex h-full flex-col bg-white dark:bg-gray-950" onKeyDown={handleKeyDown}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between border-b border-gray-200/70 bg-gray-50/90 px-4 py-2 backdrop-blur-xl dark:border-gray-800 dark:bg-gray-900/90">
+      <div className="flex items-center justify-between gap-2 border-b border-gray-200/70 bg-gray-50/90 px-3 py-2 backdrop-blur-xl dark:border-gray-800 dark:bg-gray-900/90 sm:px-4">
         <button
           onClick={onCancel}
-          className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200/70 dark:text-gray-400 dark:hover:bg-gray-800"
+          className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200/70 sm:px-3 dark:text-gray-400 dark:hover:bg-gray-800"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -376,12 +380,12 @@ function NewNoteForm({
           <span className="hidden sm:inline">Notes</span>
         </button>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400 dark:text-gray-500">
+          <span className="hidden text-xs text-gray-400 sm:inline dark:text-gray-500">
             ⌘S save · Esc cancel
           </span>
           <button
             onClick={handleSave}
-            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-500 active:scale-[0.97]"
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-500 active:scale-[0.97] sm:px-4"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

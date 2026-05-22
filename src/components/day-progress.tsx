@@ -49,10 +49,14 @@ export default function DayProgress() {
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const msElapsed = now.getTime() - dayStart.getTime();
   const dayMs = 86400000;
+  const msLeft = dayMs - msElapsed;
   const percent = Math.min((msElapsed / dayMs) * 100, 100);
   const hoursGone = Math.floor(msElapsed / 3600000);
   const minutesGone = Math.floor((msElapsed % 3600000) / 60000);
   const secondsGone = Math.floor((msElapsed % 60000) / 1000);
+  const hoursLeft = Math.floor(msLeft / 3600000);
+  const minutesLeft = Math.floor((msLeft % 3600000) / 60000);
+  const secondsLeft = Math.floor((msLeft % 60000) / 1000);
 
   const timeStr = now.toLocaleTimeString("en-US", {
     hour: "2-digit",
@@ -93,7 +97,7 @@ export default function DayProgress() {
       <div className="flex items-center gap-1.5">
         <div className="h-2 w-2 rounded-full bg-green-500" />
         <span className="text-[12px] font-semibold text-green-500 tabular-nums">
-          {String(23 - hoursGone).padStart(2, "0")}h {String(59 - minutesGone).padStart(2, "0")}m {String(59 - secondsGone).padStart(2, "0")}s
+          {String(hoursLeft).padStart(2, "0")}h {String(minutesLeft).padStart(2, "0")}m {String(secondsLeft).padStart(2, "0")}s
         </span>
         <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
           left until 12 AM

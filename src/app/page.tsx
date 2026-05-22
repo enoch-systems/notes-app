@@ -36,7 +36,7 @@ export default function Home() {
   const [displayedNotes, setDisplayedNotes] = useState<Note[]>([]);
   useEffect(() => {
     if (searchQuery) {
-      searchNotes(searchQuery).then(setDisplayedNotes);
+      searchNotes(searchQuery).then(setDisplayedNotes).catch(() => setDisplayedNotes([]));
     } else {
       setDisplayedNotes(notes);
     }
@@ -96,9 +96,9 @@ export default function Home() {
     : null;
 
   return (
-    <div className="flex h-full flex-col">
-      {/* macOS-style unified titlebar */}
-      <header className="border-b border-gray-200/60 bg-gray-100/80 backdrop-blur-xl dark:border-gray-800 dark:bg-gray-950/80">
+    <div className="h-full overflow-y-auto">
+      {/* macOS-style unified titlebar — sticky at top, notes scroll under it */}
+      <header className="sticky top-0 z-10 border-b border-gray-200/60 bg-gray-100/80 backdrop-blur-xl dark:border-gray-800 dark:bg-gray-950/80">
         {/* Date + note count row */}
         <div className="flex items-center justify-between px-4 pt-3 pb-1">
           <p className="text-2xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100">
@@ -170,16 +170,39 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Body: Sidebar + Content (split pane like Apple Notes) */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - note list */}
-        <aside
-          className={`${
-            view === "list" || sidebarOpen ? "w-full sm:w-80" : "hidden sm:flex sm:w-80"
-          } flex-shrink-0 flex-col border-r border-gray-200/60 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-950/30`}
-        >
-          {view !== "editor" && (
+      {/* Only show sidebar + main split when NOT in editor mode on mobile */}
+      {view === "editor" && selectedNote ? (
+        <div className="flex min-h-[calc(100vh-100%)]">
+          {/* Sidebar visible only on sm+ */}
+          <aside className="hidden w-80 shrink-0 flex-col border-r border-gray-200/60 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-950/30 sm:flex">
             <div className="flex-1 overflow-y-auto">
+              <div className="divide-y divide-gray-100 dark:divide-gray-800/60">
+                {displayedNotes.map((note) => (
+                  <NoteCard
+                    key={note.id}
+                    note={note}
+                    onSelect={handleSelectNote}
+                    onDelete={handleDeleteNote}
+                  />
+                ))}
+              </div>
+            </div>
+          </aside>
+          <main className="flex-1">
+            <NoteEditor
+              note={selectedNote}
+              onSave={handleSaveNote}
+              onBack={handleBack}
+            />
+          </main>
+        </div>
+      ) : view === "new" ? (
+        <NewNoteForm onSave={handleCreateNote} onCancel={handleBack} />
+      ) : (
+        /* List view: notes flow naturally in page scroll */
+        <div className="flex min-h-[calc(100vh-100%)]">
+          <aside className="w-full shrink-0 flex-col border-r border-gray-200/60 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-950/30 sm:w-80 sm:flex">
+            <div>
               {displayedNotes.length === 0 ? (
                 <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
@@ -229,124 +252,40 @@ export default function Home() {
                 </div>
               )}
             </div>
-          )}
-          {view === "editor" && (
-            <div className="hidden sm:flex sm:flex-1 sm:flex-col sm:overflow-y-auto">
-              <div className="divide-y divide-gray-100 dark:divide-gray-800/60">
-                {displayedNotes.map((note) => (
-                  <NoteCard
-                    key={note.id}
-                    note={note}
-                    onSelect={handleSelectNote}
-                    onDelete={handleDeleteNote}
-                  />
-                ))}
+          </aside>
+
+          {/* Main content placeholder (hidden on mobile when notes list is shown) */}
+          <main className="hidden flex-1 items-center justify-center sm:flex">
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-gray-400"
+                >
+                  <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v16.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h6.9c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V3.6c0-.4-.2-.8-.5-1.1-.3-.3-.7-.5-1.1-.5z" />
+                  <path d="M9 7h6" />
+                  <path d="M9 11h6" />
+                  <path d="M9 15h4" />
+                </svg>
               </div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Select a note
+              </p>
+              <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+                Choose from the sidebar or create a new one
+              </p>
             </div>
-          )}
-        </aside>
-
-        {/* Main content area */}
-        <main className="flex-1 overflow-hidden">
-          {view === "new" && (
-            <NewNoteForm onSave={handleCreateNote} onCancel={handleBack} />
-          )}
-
-          {view === "editor" && selectedNote && (
-            <NoteEditor
-              note={selectedNote}
-              onSave={handleSaveNote}
-              onBack={handleBack}
-            />
-          )}
-
-          {view === "list" && displayedNotes.length === 0 && (
-            <div className="hidden h-full items-center justify-center sm:flex">
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-gray-400"
-                  >
-                    <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v16.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h6.9c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V3.6c0-.4-.2-.8-.5-1.1-.3-.3-.7-.5-1.1-.5z" />
-                    <path d="M9 7h6" />
-                    <path d="M9 11h6" />
-                    <path d="M9 15h4" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {searchQuery ? "No results found" : "No notes yet"}
-                </p>
-                <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                  {searchQuery ? "Try adjusting your search" : "Create a note to get started"}
-                </p>
-                {!searchQuery && (
-                  <button
-                    onClick={handleAddNote}
-                    className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-medium text-white shadow-sm transition-all hover:bg-blue-500 active:scale-[0.97]"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M12 5v14" />
-                      <path d="M5 12h14" />
-                    </svg>
-                    New Note
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {view === "list" && displayedNotes.length > 0 && (
-            <div className="hidden h-full items-center justify-center sm:flex">
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-gray-400"
-                  >
-                    <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v16.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h6.9c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V3.6c0-.4-.2-.8-.5-1.1-.3-.3-.7-.5-1.1-.5z" />
-                    <path d="M9 7h6" />
-                    <path d="M9 11h6" />
-                    <path d="M9 15h4" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Select a note
-                </p>
-                <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-                  Choose from the sidebar or create a new one
-                </p>
-              </div>
-            </div>
-          )}
-        </main>
-      </div>
+          </main>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal

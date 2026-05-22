@@ -24,15 +24,23 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
-  const loadNotes = useCallback(() => {
-    setNotes(getNotes());
+  const loadNotes = useCallback(async () => {
+    const fetched = await getNotes();
+    setNotes(fetched);
   }, []);
 
   useEffect(() => {
     loadNotes();
   }, [loadNotes]);
 
-  const displayedNotes = searchQuery ? searchNotes(searchQuery) : notes;
+  const [displayedNotes, setDisplayedNotes] = useState<Note[]>([]);
+  useEffect(() => {
+    if (searchQuery) {
+      searchNotes(searchQuery).then(setDisplayedNotes);
+    } else {
+      setDisplayedNotes(notes);
+    }
+  }, [searchQuery, notes]);
 
   function handleSelectNote(id: string) {
     setSelectedNoteId(id);
@@ -45,26 +53,26 @@ export default function Home() {
     setSidebarOpen(false);
   }
 
-  function handleCreateNote(title: string, content: string) {
-    addNote(title, content);
-    loadNotes();
+  async function handleCreateNote(title: string, content: string) {
+    await addNote(title, content);
+    await loadNotes();
     setView("list");
     setSidebarOpen(true);
   }
 
-  function handleSaveNote(id: string, title: string, content: string) {
-    updateNote(id, title, content);
-    loadNotes();
+  async function handleSaveNote(id: string, title: string, content: string) {
+    await updateNote(id, title, content);
+    await loadNotes();
   }
 
   function handleDeleteNote(id: string) {
     setPendingDeleteId(id);
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!pendingDeleteId) return;
-    deleteNote(pendingDeleteId);
-    loadNotes();
+    await deleteNote(pendingDeleteId);
+    await loadNotes();
     if (selectedNoteId === pendingDeleteId) {
       setSelectedNoteId(null);
       setView("list");

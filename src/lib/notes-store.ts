@@ -1,73 +1,91 @@
 "use client";
 
 import { Note } from "./types";
+import { supabase } from "./supabase";
 
-const STORAGE_KEY = "my-notes-app-notes";
+export async function getNotes(): Promise<Note[]> {
+  const { data, error } = await supabase
+    .from("notes")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-export function getNotes(): Note[] {
-  if (typeof window === "undefined") return [];
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored) as Note[];
-  } catch {
+  if (error) {
+    console.error("Error fetching notes:", error);
     return [];
   }
+
+  return (data ?? []).map(mapRow);
 }
 
-export function saveNotes(notes: Note[]): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-}
-
-export function getNote(id: string): Note | undefined {
-  const notes = getNotes();
-  return notes.find((n) => n.id === id);
-}
-
-export function addNote(title: string, content: string): Note {
-  const notes = getNotes();
+export async function addNote(title: string, content: string): Promise<Note | null> {
   const now = Date.now();
-  const note: Note = {
-    id: crypto.randomUUID(),
-    title,
-    content,
-    createdAt: now,
-    updatedAt: now,
-  };
-  notes.unshift(note);
-  saveNotes(notes);
-  return note;
+  const { data, error } = await supabase
+    .from("notes")
+    .insert({ title, content, created_at: now, updated_at: now })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error adding note:", error);
+    return null;
+  }
+
+  return data ? mapRow(data) : null;
 }
 
-export function updateNote(id: string, title: string, content: string): Note | undefined {
-  const notes = getNotes();
-  const index = notes.findIndex((n) => n.id === id);
-  if (index === -1) return undefined;
-  notes[index] = {
-    ...notes[index],
-    title,
-    content,
-    updatedAt: Date.now(),
-  };
-  saveNotes(notes);
-  return notes[index];
+export async function updateNote(
+  id: string,
+  title: string,
+  content: string
+): Promise<Note | null> {
+  const { data, error } = await supabase
+    .from("notes")
+    .update({ title, content, updated_at: Date.now() })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating note:", error);
+    return null;
+  }
+
+  return data ? mapRow(data) : null;
 }
 
-export function deleteNote(id: string): boolean {
-  const notes = getNotes();
-  const filtered = notes.filter((n) => n.id !== id);
-  if (filtered.length === notes.length) return false;
-  saveNotes(filtered);
+export async function deleteNote(id: string): Promise<boolean> {
+  const { error } = await supabase.from("notes").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error deleting note:", error);
+    return false;
+  }
+
   return true;
 }
 
-export function searchNotes(query: string): Note[] {
-  const notes = getNotes();
-  const q = query.toLowerCase();
-  return notes.filter(
-    (n) =>
-      n.title.toLowerCase().includes(q) ||
-      n.content.toLowerCase().includes(q)
-  );
+export async function searchNotes(query: string): Promise<Note[]> {
+  const q = `%${query.toLowerCase()}%`;
+  const { data, error } = await supabase
+    .from("notes")
+    .select("*")
+    .or(`title.ilike.${q},content.ilike.${q}`)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error searching notes:", error);
+    return [];
+  }
+
+  return (data ?? []).map(mapRow);
+}
+
+function mapRow(row: any): Note {
+  return {
+    id: row.id,
+    title: row.title ?? "",
+    content: row.content ?? "",
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }

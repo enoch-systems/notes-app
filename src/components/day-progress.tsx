@@ -33,12 +33,18 @@ function formatCountdown(ms: number): { hh: string; mm: string; ss: string } {
 }
 
 export default function DayProgress() {
+  const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
+    setMounted(true);
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  if (!mounted) {
+    return <div className="px-4 pb-2.5" />;
+  }
 
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const msElapsed = now.getTime() - dayStart.getTime();
@@ -71,7 +77,7 @@ export default function DayProgress() {
           {percent.toFixed(0)}%
         </span>
       </div>
-
+    
       {/* Hours gone since midnight */}
       <div className="flex items-center gap-1.5">
         <div className="h-2 w-2 rounded-full bg-red-500" />
